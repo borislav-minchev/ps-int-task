@@ -1,26 +1,65 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useState } from 'react'
+import './App.css'
+import useJsonFromFile from './hooks/use-json-from-file'
+import { getDistanceFromCoordinatesInKm } from './utils/utils'
+import { Coordinates, EligiblePartner } from './types/common'
+import Slider from './components/Slider'
+import PartnersList from './components/PartnersList'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const partnersFile = 'partners.txt'
+
+const sofiaOfficeCoordinates = {
+	latitude: 42.6665921,
+	longitude: 23.351723,
 }
 
-export default App;
+const minDistance = '1'
+const maxDistance = '300'
+const defaultDistance = '100'
+
+function App() {
+	const [sliderValue, setSliderValue] = useState<string>(defaultDistance)
+
+	const { jsonArray, isFileFetchingDone, error } = useJsonFromFile(partnersFile)
+
+	if (!isFileFetchingDone) {
+		return <div>Loading...</div>
+	} else if (isFileFetchingDone && error) {
+		return <div>{error}</div>
+	}
+
+	const eligiblePartners: EligiblePartner[] = []
+
+	jsonArray.forEach((partner) => {
+		const targetCoords: Coordinates = {
+			latitude: partner.latitude,
+			longitude: partner.longitude,
+		}
+
+		const distance = getDistanceFromCoordinatesInKm(
+			sofiaOfficeCoordinates,
+			targetCoords
+		)
+
+		if (distance <= parseInt(sliderValue)) {
+			eligiblePartners.push({
+				id: partner.partner_id,
+				name: partner.name,
+			})
+		}
+	})
+
+	return (
+		<div className="App">
+			<Slider
+				minDistance={minDistance}
+				maxDistance={maxDistance}
+				sliderValue={sliderValue}
+				setSliderValue={setSliderValue}
+			/>
+			<PartnersList eligiblePartners={eligiblePartners} />
+		</div>
+	)
+}
+
+export default App

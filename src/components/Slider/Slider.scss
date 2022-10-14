@@ -1,0 +1,15 @@
+.slider-container {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 2rem;
+
+	.distance-label {
+		margin: 0 1rem;
+	}
+
+	input[type='range'] {
+		width: 300px;
+	}
+}
